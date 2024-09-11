@@ -1,0 +1,21 @@
+{
+  "name": "table-planner",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "puppeteer": "^23.3.0",
+    "puppeteer-stream": "^3.0.15"
+  }
+}
