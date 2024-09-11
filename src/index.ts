@@ -1,55 +1,106 @@
-import puppeteer from 'puppeteer';
 import { launch, getStream, wss } from 'puppeteer-stream';
 import fs from 'node:fs';
+import { prepare, recordSpeakers } from './adapters/bbb/index.js';
+import { runPython } from './utils/run-python.js';
+import { createFullTranscription } from './utils/create-full-transcription.js';
+import { randomUUID } from 'node:crypto';
+import ora from 'ora';
+import { summarizeConversation } from './utils/summarize-conversation.js';
+import { createPdf } from './utils/create-pdf.js';
+import { projectDirname } from './utils/project-dirname.js';
 
-const bbbSelectors = {
-  joinFormName: '#joinFormName',
-  consentCheck: '#consentCheck',
-  submitButton: 'button[type="submit"]',
-  audioButton: '[data-test="listenOnlyBtn"]',
-};
+const url = process.argv[2];
+
+if (!url) {
+  console.error('URL is required');
+  process.exit(1);
+}
+
+let exitFn: () => void;
+
+process.on('SIGINT', () => {
+  if (exitFn) {
+    exitFn();
+  } else {
+    process.exit(0);
+  }
+});
 
 async function main() {
-  const browserPath = await puppeteer.executablePath();
-
   const browser = await launch({
-    executablePath: browserPath,
+    executablePath: '/usr/bin/google-chrome-stable',
     headless: 'new',
     defaultViewport: {
       width: 1920,
       height: 1080,
     },
   });
+
   const page = await browser.newPage();
 
-  // login
-  await page.goto('https://video.kaleidos.net/rooms/jua-jws-pok-cye/join');
-  await page.waitForSelector(bbbSelectors.joinFormName);
-  await page.type(bbbSelectors.joinFormName, 'Recording bot');
-  await page.click(bbbSelectors.consentCheck);
-  await page.click(bbbSelectors.submitButton);
-
-  // connect only audio
-  await page.waitForSelector(bbbSelectors.audioButton);
-  await page.click(bbbSelectors.audioButton);
-  await page.waitForSelector(bbbSelectors.audioButton, { hidden: true });
+  await prepare(page, url);
 
   const stream = await getStream(page, { audio: true, video: false });
+  const id = randomUUID();
+  const filePath = `${projectDirname()}/recordings/${id}/record.webm`;
 
-  const file = fs.createWriteStream(
-    import.meta.dirname + '../recordings/test.webm'
-  );
+  console.log(`File path: ./recordings/${id}/record.webm`);
+  console.log('Press Ctrl+C to stop recording');
+  console.log('');
+
+  const spinner = ora(`Recording ${url}`).start();
+
+  fs.mkdirSync(`${projectDirname()}/recordings/${id}`);
+
+  const file = fs.createWriteStream(filePath);
 
   stream.pipe(file);
+  const speakerManager = recordSpeakers(page);
 
-  setTimeout(async () => {
+  exitFn = async () => {
+    spinner.text = 'Generating transcription...';
+    spinner.color = 'yellow';
+
+    const speakers = speakerManager();
+
+    fs.writeFileSync(
+      `${projectDirname()}/recordings/${id}/speakers.json`,
+      JSON.stringify(speakers, null, 2)
+    );
+
     await stream.destroy();
     file.close();
-    console.log('finished');
 
     await browser.close();
     (await wss).close();
-  }, 1000 * 10);
+
+    const result = await runPython(`./recordings/${id}/record.webm`);
+    const transcription = createFullTranscription(speakers, result);
+
+    fs.writeFileSync(
+      `${projectDirname()}/recordings/${id}/transcription.json`,
+      JSON.stringify(result, null, 2)
+    );
+
+    const textConversation = transcription
+      .map((segment) => {
+        return `${segment.speaker}: ${segment.text}`;
+      })
+      .join('\n');
+
+    const summary = await summarizeConversation(textConversation);
+    const pdfPath = await createPdf(id, textConversation, summary);
+
+    spinner.stop();
+    console.log('');
+    console.log(textConversation);
+    console.log('');
+    console.log(summary);
+    console.log('');
+    console.log('PDF file created at:', pdfPath);
+
+    process.exit(0);
+  };
 }
 
 main();
