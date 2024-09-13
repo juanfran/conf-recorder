@@ -42,7 +42,7 @@ export function recordSpeakers(page: Page, initialDate = Date.now()) {
         currentTalking.splice(index, 1);
       }
     });
-  }, 250);
+  }, 100);
 
   return function () {
     clearInterval(interval);

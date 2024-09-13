@@ -1,13 +1,13 @@
 import { launch, getStream, wss } from 'puppeteer-stream';
 import fs from 'node:fs';
 import { prepare, recordSpeakers } from './adapters/bbb/index.js';
-import { runPython } from './utils/run-python.js';
-import { createFullTranscription } from './utils/create-full-transcription.js';
 import { randomUUID } from 'node:crypto';
-import ora from 'ora';
-import { summarizeConversation } from './utils/summarize-conversation.js';
-import { createPdf } from './utils/create-pdf.js';
 import { projectDirname } from './utils/project-dirname.js';
+import { processMeeting } from './process-meeting.js';
+import { spinnerMessage, stopSpinner } from './spinner.js';
+
+await processMeeting('test2');
+process.exit(0);
 
 const url = process.argv[2];
 
@@ -48,7 +48,7 @@ async function main() {
   console.log('Press Ctrl+C to stop recording');
   console.log('');
 
-  const spinner = ora(`Recording ${url}`).start();
+  spinnerMessage(`Recording ${url}`);
 
   fs.mkdirSync(`${projectDirname()}/recordings/${id}`);
 
@@ -58,9 +58,6 @@ async function main() {
   const speakerManager = recordSpeakers(page);
 
   exitFn = async () => {
-    spinner.text = 'Generating transcription...';
-    spinner.color = 'yellow';
-
     const speakers = speakerManager();
 
     fs.writeFileSync(
@@ -74,28 +71,9 @@ async function main() {
     await browser.close();
     (await wss).close();
 
-    const result = await runPython(`./recordings/${id}/record.webm`);
-    const transcription = createFullTranscription(speakers, result);
+    const pdfPath = processMeeting(id);
 
-    fs.writeFileSync(
-      `${projectDirname()}/recordings/${id}/transcription.json`,
-      JSON.stringify(result, null, 2)
-    );
-
-    const textConversation = transcription
-      .map((segment) => {
-        return `${segment.speaker}: ${segment.text}`;
-      })
-      .join('\n');
-
-    const summary = await summarizeConversation(textConversation);
-    const pdfPath = await createPdf(id, textConversation, summary);
-
-    spinner.stop();
-    console.log('');
-    console.log(textConversation);
-    console.log('');
-    console.log(summary);
+    stopSpinner();
     console.log('');
     console.log('PDF file created at:', pdfPath);
 
@@ -103,4 +81,4 @@ async function main() {
   };
 }
 
-main();
+// main();

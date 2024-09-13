@@ -1,7 +1,13 @@
 ## Requirements
 
 - NVM or Node 22
-- [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+- ffmpeg
+
+## Optional
+
+Needed if you are running whisper an the summary model locally
+
+- [insanely-fast-whisper](https://github.com/Vaibhavs10/insanely-fast-whisper)
 - [Ollama](https://ollama.com/)
 
 ## Installation
