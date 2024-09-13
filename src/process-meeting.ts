@@ -11,6 +11,7 @@ import { WhisperTranscription } from './models/whisper-transcripton.model.js';
 import { Speaker } from './models/speaker.model.js';
 import { createTranscriptionWithWhisperDiarise } from './utils/create-transcription-with-whisper-diarise.js';
 import { Transcription } from './models/transcription.model.js';
+import { flatTranscription } from './utils/flat-transcription.js';
 
 export async function processMeeting(id: string) {
   spinnerMessage('Generating transcription...', 'yellow');
@@ -22,6 +23,7 @@ export async function processMeeting(id: string) {
     )
   ) as Speaker[];
 
+  // TODO: Optional compression,. env
   spinnerMessage('Compressing file...');
 
   // await compressFile(
@@ -31,11 +33,11 @@ export async function processMeeting(id: string) {
 
   spinnerMessage('Transcribing...');
 
-  await runWhisper(
-    `./recordings/${id}/record-compressed.webm`,
-    `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
-    Array.from(new Set(speakers.map((speaker) => speaker.name))).length
-  );
+  // await runWhisper(
+  //   `./recordings/${id}/record-compressed.webm`,
+  //   `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
+  //   Array.from(new Set(speakers.map((speaker) => speaker.name))).length
+  // );
 
   const resultWhisper = JSON.parse(
     fs.readFileSync(
@@ -46,7 +48,7 @@ export async function processMeeting(id: string) {
 
   let transcription: Transcription[] = [];
 
-  if (resultWhisper.speakers.length) {
+  if (resultWhisper.speakers.length && false) {
     transcription = createTranscriptionWithWhisperDiarise(
       resultWhisper.speakers,
       speakers
@@ -62,6 +64,8 @@ export async function processMeeting(id: string) {
 
     transcription = createFullTranscription(speakers, result);
   }
+
+  transcription = flatTranscription(transcription);
 
   fs.writeFileSync(
     `${projectDirname()}/recordings/${id}/transcription.json`,

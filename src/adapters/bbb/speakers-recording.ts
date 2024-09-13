@@ -37,7 +37,7 @@ export function recordSpeakers(page: Page, initialDate = Date.now()) {
 
     currentTalking.forEach((s, index) => {
       if (!talking.find((name) => name === s.name)) {
-        s.end = (Date.now() - initialDate) / 1000;
+        s.end = (Date.now() - initialDate) / 1000 - 1;
         speakers.push(s);
         currentTalking.splice(index, 1);
       }
@@ -48,10 +48,12 @@ export function recordSpeakers(page: Page, initialDate = Date.now()) {
     clearInterval(interval);
 
     currentTalking.forEach((s) => {
-      s.end = Date.now();
+      s.end = (Date.now() - initialDate) / 1000 - 1;
       speakers.push(s);
     });
 
-    return speakers as Speaker[];
+    return (speakers as Speaker[]).filter((s) => {
+      return s.end < s.start;
+    });
   };
 }

@@ -6,7 +6,7 @@ import { projectDirname } from './utils/project-dirname.js';
 import { processMeeting } from './process-meeting.js';
 import { spinnerMessage, stopSpinner } from './spinner.js';
 
-await processMeeting('test2');
+await processMeeting('test');
 process.exit(0);
 
 const url = process.argv[2];
