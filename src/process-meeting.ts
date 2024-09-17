@@ -14,6 +14,9 @@ import { Transcription } from './models/transcription.model.js';
 import { flatTranscription } from './utils/flat-transcription.js';
 import { compressRecording } from './config.js';
 
+const runWhisperEnabled = true;
+const runSummarizeEnabled = true;
+
 export async function processMeeting(id: string) {
   spinnerMessage('Generating transcription...', 'yellow');
 
@@ -39,11 +42,13 @@ export async function processMeeting(id: string) {
 
   spinnerMessage('Transcribing...');
 
-  await runWhisper(
-    file,
-    `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
-    Array.from(new Set(speakers.map((speaker) => speaker.name))).length
-  );
+  if (runWhisperEnabled) {
+    await runWhisper(
+      file,
+      `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
+      Array.from(new Set(speakers.map((speaker) => speaker.name))).length
+    );
+  }
 
   const resultWhisper = JSON.parse(
     fs.readFileSync(
@@ -86,8 +91,10 @@ export async function processMeeting(id: string) {
 
   spinnerMessage('Summarizing conversation...');
 
-  // return await createPdf(id, textConversation, '');
-
-  const summary = await summarizeConversation(textConversation);
-  return await createPdf(id, textConversation, summary);
+  if (runSummarizeEnabled) {
+    const summary = await summarizeConversation(textConversation);
+    return await createPdf(id, textConversation, summary);
+  } else {
+    return await createPdf(id, textConversation, '');
+  }
 }

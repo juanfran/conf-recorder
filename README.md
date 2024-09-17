@@ -15,13 +15,5 @@ Needed if you are running whisper an the summary model locally
 ```bash
 nvm install
 pnpm install
-ollama pull llama3.1
+ollama pull llama3.1:8b
 ```
-
-## TODO
-
-- no speakers left, close the recording
-- env vars
-- write in chat
-- ollama
-- pdf

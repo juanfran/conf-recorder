@@ -1,5 +1,3 @@
-import { b } from 'vitest/dist/chunks/suite.CcK46U-P.js';
-
 export const compressRecording = () => {
   const compressRecording = process.env?.COMPRESS_RECORDING ?? 'False';
 
@@ -28,5 +26,25 @@ export const getRemoteWhisperConfig = () => {
     model: model as `${string}/${string}` | `${string}/${string}:${string}`,
     bachSize: Number(process.env.REMOTE_WHISPER_BATCH_SIZE) || 64,
     hfToken: process.env.HUGGINGFACE_TOKEN,
+  };
+};
+
+export const isSummarizeLocal = (): boolean => {
+  const summarize = process.env.SUMMARIZE ?? 'LOCAL';
+  return summarize.toUpperCase() === 'LOCAL';
+};
+
+export const getLocalSummarizeConfig = () => {
+  return {
+    model: process.env.LOCAL_SUMMARIZE_MODEL || 'llama3.1:8b',
+  };
+};
+
+export const getRemoteSummarizeConfig = () => {
+  const model =
+    process.env.REMOTE_SUMMARIZE_MODEL || 'meta/meta-llama-3-70b-instruct';
+
+  return {
+    model: model as `${string}/${string}` | `${string}/${string}:${string}`,
   };
 };
