@@ -5,19 +5,15 @@ import { randomUUID } from 'node:crypto';
 import { projectDirname } from './utils/project-dirname.js';
 import { processMeeting } from './process-meeting.js';
 import { spinnerMessage, stopSpinner } from './spinner.js';
-import {
-  getLocalWhisperConfig,
-  isWhisperLocal,
-  compressRecording,
-} from './config.js';
+// import { getConfig, isWhisperLocal, compressRecording } from './config.js';
 
 // console.log(compressRecording());
 // console.log(isWhisperLocal());
 // console.log(getLocalWhisperConfig());
 // process.exit(0);
 
-await processMeeting('test2');
-process.exit(0);
+// await processMeeting('test3');
+// process.exit(0);
 
 const url = process.argv[2];
 
@@ -81,7 +77,7 @@ async function main() {
     await browser.close();
     (await wss).close();
 
-    const pdfPath = processMeeting(id);
+    const pdfPath = await processMeeting(id);
 
     stopSpinner();
     console.log('');

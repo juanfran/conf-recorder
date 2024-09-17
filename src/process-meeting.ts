@@ -86,8 +86,8 @@ export async function processMeeting(id: string) {
 
   spinnerMessage('Summarizing conversation...');
 
-  return await createPdf(id, textConversation, '');
+  // return await createPdf(id, textConversation, '');
 
-  // const summary = await summarizeConversation(textConversation);
-  // return await createPdf(id, textConversation, summary);
+  const summary = await summarizeConversation(textConversation);
+  return await createPdf(id, textConversation, summary);
 }

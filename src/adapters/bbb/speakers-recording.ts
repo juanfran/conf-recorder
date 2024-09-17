@@ -26,7 +26,6 @@ export function recordSpeakers(page: Page, initialDate = Date.now()) {
 
     talking.forEach(async (name) => {
       const speaker = currentTalking.find((s) => s.name === name);
-
       if (!speaker) {
         currentTalking.push({
           name,
@@ -53,7 +52,7 @@ export function recordSpeakers(page: Page, initialDate = Date.now()) {
     });
 
     return (speakers as Speaker[]).filter((s) => {
-      return s.end < s.start;
+      return s.end > s.start;
     });
   };
 }
