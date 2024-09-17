@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import { getLocalWhisperConfig } from '../config.js';
 
 export function runWhisper(
   filePath: string,
@@ -6,10 +7,10 @@ export function runWhisper(
   numSpeakers?: number
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    // TODO: configurable model & batch size
+    const localWhisperConfig = getLocalWhisperConfig();
     const params = [
       '--model',
-      'openai/whisper-large-v3',
+      localWhisperConfig.model,
       '--timestamp',
       'chunk',
       '--file-name',
@@ -17,11 +18,11 @@ export function runWhisper(
       '--transcript-path',
       outputPath,
       '--batch-size',
-      12,
+      localWhisperConfig.bachSize,
     ];
 
-    if (process.env.HUGGINGFACE_TOKEN) {
-      params.push('--hf-token', process.env.HUGGINGFACE_TOKEN);
+    if (localWhisperConfig.hf_token) {
+      params.push('--hf-token', localWhisperConfig.hf_token);
       // params.push('--num-speakers', String(numSpeakers));
     }
 

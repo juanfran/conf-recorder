@@ -12,6 +12,7 @@ import { Speaker } from './models/speaker.model.js';
 import { createTranscriptionWithWhisperDiarise } from './utils/create-transcription-with-whisper-diarise.js';
 import { Transcription } from './models/transcription.model.js';
 import { flatTranscription } from './utils/flat-transcription.js';
+import { compressRecording } from './config.js';
 
 export async function processMeeting(id: string) {
   spinnerMessage('Generating transcription...', 'yellow');
@@ -23,18 +24,23 @@ export async function processMeeting(id: string) {
     )
   ) as Speaker[];
 
-  // TODO: Optional compression,. env
-  spinnerMessage('Compressing file...');
+  let file = `./recordings/${id}/record.webm`;
 
-  await compressFile(
-    `${projectDirname()}/recordings/${id}/record.webm`,
-    `${projectDirname()}/recordings/${id}/record-compressed.webm`
-  );
+  if (compressRecording()) {
+    spinnerMessage('Compressing file...');
+
+    await compressFile(
+      `${projectDirname()}/recordings/${id}/record.webm`,
+      `${projectDirname()}/recordings/${id}/record-compressed.webm`
+    );
+
+    file = `./recordings/${id}/record-compressed.webm`;
+  }
 
   spinnerMessage('Transcribing...');
 
   await runWhisper(
-    `./recordings/${id}/record-compressed.webm`,
+    file,
     `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
     Array.from(new Set(speakers.map((speaker) => speaker.name))).length
   );
@@ -48,7 +54,6 @@ export async function processMeeting(id: string) {
 
   let transcription: Transcription[] = [];
 
-  // TODO: params check if whisper diairize is enabled
   if (resultWhisper.speakers.length) {
     transcription = createTranscriptionWithWhisperDiarise(
       resultWhisper.speakers,
@@ -81,6 +86,8 @@ export async function processMeeting(id: string) {
 
   spinnerMessage('Summarizing conversation...');
 
-  const summary = await summarizeConversation(textConversation);
-  return await createPdf(id, textConversation, summary);
+  return await createPdf(id, textConversation, '');
+
+  // const summary = await summarizeConversation(textConversation);
+  // return await createPdf(id, textConversation, summary);
 }
