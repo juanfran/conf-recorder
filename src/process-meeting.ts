@@ -26,18 +26,18 @@ export async function processMeeting(id: string) {
   // TODO: Optional compression,. env
   spinnerMessage('Compressing file...');
 
-  // await compressFile(
-  //   `${projectDirname()}/recordings/${id}/record.webm`,
-  //   `${projectDirname()}/recordings/${id}/record-compressed.webm`
-  // );
+  await compressFile(
+    `${projectDirname()}/recordings/${id}/record.webm`,
+    `${projectDirname()}/recordings/${id}/record-compressed.webm`
+  );
 
   spinnerMessage('Transcribing...');
 
-  // await runWhisper(
-  //   `./recordings/${id}/record-compressed.webm`,
-  //   `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
-  //   Array.from(new Set(speakers.map((speaker) => speaker.name))).length
-  // );
+  await runWhisper(
+    `./recordings/${id}/record-compressed.webm`,
+    `${projectDirname()}/recordings/${id}/whisper-transcription.json`,
+    Array.from(new Set(speakers.map((speaker) => speaker.name))).length
+  );
 
   const resultWhisper = JSON.parse(
     fs.readFileSync(
@@ -48,6 +48,7 @@ export async function processMeeting(id: string) {
 
   let transcription: Transcription[] = [];
 
+  // TODO: params check if whisper diairize is enabled
   if (resultWhisper.speakers.length) {
     transcription = createTranscriptionWithWhisperDiarise(
       resultWhisper.speakers,
@@ -78,10 +79,8 @@ export async function processMeeting(id: string) {
     })
     .join('\n\n');
 
-  return await createPdf(id, textConversation, '');
+  spinnerMessage('Summarizing conversation...');
 
-  // spinnerMessage('Summarizing conversation...');
-
-  // const summary = await summarizeConversation(textConversation);
-  // return await createPdf(id, textConversation, summary);
+  const summary = await summarizeConversation(textConversation);
+  return await createPdf(id, textConversation, summary);
 }

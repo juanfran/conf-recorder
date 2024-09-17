@@ -9,7 +9,7 @@ export function runWhisper(
     // TODO: configurable model & batch size
     const params = [
       '--model',
-      'openai/whisper-large',
+      'openai/whisper-large-v3',
       '--timestamp',
       'chunk',
       '--file-name',
@@ -17,12 +17,12 @@ export function runWhisper(
       '--transcript-path',
       outputPath,
       '--batch-size',
-      4,
+      12,
     ];
 
     if (process.env.HUGGINGFACE_TOKEN) {
       params.push('--hf-token', process.env.HUGGINGFACE_TOKEN);
-      params.push('--num-speakers', String(numSpeakers));
+      // params.push('--num-speakers', String(numSpeakers));
     }
 
     execSync('insanely-fast-whisper ' + params.join(' '), { stdio: 'inherit' });
