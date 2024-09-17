@@ -48,7 +48,7 @@ export async function processMeeting(id: string) {
 
   let transcription: Transcription[] = [];
 
-  if (resultWhisper.speakers.length && false) {
+  if (resultWhisper.speakers.length) {
     transcription = createTranscriptionWithWhisperDiarise(
       resultWhisper.speakers,
       speakers
@@ -78,8 +78,10 @@ export async function processMeeting(id: string) {
     })
     .join('\n\n');
 
-  spinnerMessage('Summarizing conversation...');
+  return await createPdf(id, textConversation, '');
 
-  const summary = await summarizeConversation(textConversation);
-  return await createPdf(id, textConversation, summary);
+  // spinnerMessage('Summarizing conversation...');
+
+  // const summary = await summarizeConversation(textConversation);
+  // return await createPdf(id, textConversation, summary);
 }
