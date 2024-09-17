@@ -1,5 +1,13 @@
 Conf Recorder is a Node.js application that joins a [BigBlueButton](https://bigbluebutton.org/) room, records the conversation, generates a transcription using Whisper, and provides a summary with an AI model.
 
+## Features
+
+- Joins BigBlueButton rooms and records conversations.
+- Transcribes audio after the meeting using OpenAI Whisper (locally or remotely).
+- Generates meeting summaries using AI models (locally or remotely).
+- Supports both local and cloud-based processing for transcription and summarization.
+- Optional recording compression with FFmpeg.
+
 ## Requirements
 
 - [NVM](https://github.com/nvm-sh/nvm) or Node.js 22
